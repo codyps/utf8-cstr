@@ -71,7 +71,7 @@ gen_index () {
 	fi
 
 	git add -A .
-	git commit -qm "index generation by $PROJECT_NAME ($TRAVIS_REPO_SLUG)"
+	git commit --allow-empty -qm "index generation by $PROJECT_NAME ($TRAVIS_REPO_SLUG)"
 }
 
 rollback_index() {

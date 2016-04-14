@@ -2,6 +2,7 @@ use std::ffi::CStr;
 use std::str::Utf8Error;
 use std::convert::AsRef;
 use std::mem::transmute;
+use std::os::raw::c_char;
 
 #[derive(Debug)]
 pub enum Utf8CStrError {
@@ -52,6 +53,11 @@ impl Utf8CStr {
     /// Raw convertion from basic data type with no checking.
     pub unsafe fn from_bytes_with_nul_unchecked(b: &[u8]) -> &Utf8CStr {
         transmute(b)
+    }
+
+    pub fn as_ptr(&self) -> *const c_char {
+        let v : &CStr = self.as_ref();
+        v.as_ptr()
     }
 }
 

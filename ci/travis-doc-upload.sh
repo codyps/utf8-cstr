@@ -53,7 +53,10 @@ mv ../target/$TARGET/doc "$PROJECT_NAME"
 # cursor for iteration
 crate_name="$(printf "%s" "$PROJECT_BASE" | sed 's/-/_/g')"
 
-gen_commit () {
+git add -A .
+git commit -qm "doc upload for $PROJECT_NAME ($TRAVIS_REPO_SLUG)"
+
+gen_index () {
 	curr="$(dirname "$PROJECT_NAME")"
 	../"$D"/generate-index.sh "$curr" "$crate_name/index.html"
 	if ! [ . = "$curr" ]; then
@@ -68,31 +71,17 @@ gen_commit () {
 	fi
 
 	git add -A .
-	git commit -qm "doc upload for $PROJECT_NAME ($TRAVIS_REPO_SLUG)"
+	git commit -qm "index generation by $PROJECT_NAME ($TRAVIS_REPO_SLUG)"
 }
 
-rollback_commit() {
-	git reset HEAD^
-	# moves HEAD & index, but not workdir
-
-	curr="$(dirname "$PROJECT_NAME")"
-	git checkout index.html
-	if ! [ . = "$curr" ]; then
-		curr="$(dirname "$curr")"
-		while true; do
-			git checkout index.html
-			if [ . = "$curr" ]; then
-				break
-			fi
-			curr="$(dirname "$curr")"
-		done
-	fi
+rollback_index() {
+	git reset --hard HEAD^
 }
 
-gen_commit
+gen_index
 
 while ! git push -q origin HEAD:refs/heads/gh-pages; do
-	rollback_commit
-	git pull
-	gen_commit
+	rollback_index
+	git pull --no-edit
+	gen_index
 done

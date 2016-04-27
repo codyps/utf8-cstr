@@ -26,7 +26,6 @@ pub enum Utf8CStrError {
  */
 #[derive(PartialEq, Eq)]
 pub struct Utf8CStr {
-    #[allow(dead_code)]
     inner: CStr,
 }
 
@@ -45,12 +44,26 @@ impl fmt::Display for Utf8CStr {
 }
 
 impl Utf8CStr {
+    /// Construct a `Utf8CStr` with minimal checking.
+    ///
+    /// This currently will scan for the terminating '\0' just to establish the length for various
+    /// slices.
+    ///
+    /// Unsafety:
+    ///
+    ///  - `'a` must be the correct lifetime
+    ///  - `v` must be nul terminated
+    ///  - `v` must be utf-8 encoded (for use in `&str`)
+    pub unsafe fn from_ptr_unchecked<'a>(v: *const c_char) -> &'a Self {
+        Self::from_cstr_unchecked(CStr::from_ptr(v))
+    }
+
     /// Failable convertion from a CStr.
     ///
     /// Verifies that the CStr is utf8 encoded.
     ///
     /// NOTE: Only handles non-mutable variants. We may want to accept &mut as well in the future.
-    pub fn from_cstr(v: &CStr) -> Result<&Utf8CStr, Utf8Error> {
+    pub fn from_cstr(v: &CStr) -> Result<&Self, Utf8Error> {
         try!(v.to_str());
         Ok(unsafe { transmute(v)})
     }
@@ -61,14 +74,14 @@ impl Utf8CStr {
     ///
     ///  - `v` must be valid utf8 for use in a `&str`
     pub unsafe fn from_cstr_unchecked(v: &CStr) -> &Utf8CStr {
-        transmute(v)
+        Self::from_bytes_with_nul_unchecked(v.to_bytes_with_nul())
     }
 
     /// Convert directly from bytes
     ///
     /// NOTE: right now this scans `b` a few times over. Ideally, we'd adjust it to only scan `b`
     /// once.
-    pub fn from_bytes(b: &[u8]) -> Result<&Utf8CStr, Utf8CStrError> {
+    pub fn from_bytes(b: &[u8]) -> Result<&Self, Utf8CStrError> {
         // FIXME: use from_bytes_with_nul when stablized
         for (l, &v) in b[0..b.len() - 1].iter().enumerate() {
             if v == b'\0' {
@@ -84,7 +97,7 @@ impl Utf8CStr {
     }
 
     /// Raw convertion from basic data type with no checking.
-    pub unsafe fn from_bytes_with_nul_unchecked(b: &[u8]) -> &Utf8CStr {
+    pub unsafe fn from_bytes_with_nul_unchecked(b: &[u8]) -> &Self {
         transmute(b)
     }
 
@@ -92,6 +105,7 @@ impl Utf8CStr {
         let v : &CStr = self.as_ref();
         v.as_ptr()
     }
+
 }
 
 impl AsRef<str> for Utf8CStr {

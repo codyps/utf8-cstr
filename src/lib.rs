@@ -46,10 +46,21 @@ impl fmt::Display for Utf8CStr {
 impl Utf8CStr {
     /// Failable convertion from a CStr.
     ///
+    /// Verifies that the CStr is utf8 encoded.
+    ///
     /// NOTE: Only handles non-mutable variants. We may want to accept &mut as well in the future.
     pub fn from_cstr(v: &CStr) -> Result<&Utf8CStr, Utf8Error> {
         try!(v.to_str());
         Ok(unsafe { transmute(v)})
+    }
+
+    /// Convert from a `&CStr` without any checking
+    ///
+    /// Unsafety:
+    ///
+    ///  - `v` must be valid utf8 for use in a `&str`
+    pub unsafe fn from_cstr_unchecked(v: &CStr) -> &Utf8CStr {
+        transmute(v)
     }
 
     /// Convert directly from bytes

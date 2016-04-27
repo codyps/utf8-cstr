@@ -24,6 +24,7 @@ pub enum Utf8CStrError {
  * Plain `std::ffi::CStr` only promises null termination, but some ffi (and other bits) require
  * strings that are both valid utf8 and null terminated.
  */
+#[derive(PartialEq, Eq)]
 pub struct Utf8CStr {
     #[allow(dead_code)]
     inner: CStr,
@@ -118,9 +119,16 @@ mod tests {
     use super::Utf8CStrError;
     #[test]
     fn it_works() {
-        Utf8CStr::from_bytes(b"hello\0").unwrap();
+        let x = Utf8CStr::from_bytes(b"hello\0").unwrap();
         assert_matches!(Utf8CStr::from_bytes(b"hell").err().unwrap(), Utf8CStrError::NoNulTerm);
         assert_matches!(Utf8CStr::from_bytes(b"hell\0d").err().unwrap(), Utf8CStrError::EmbeddedNulTerm(4));
         assert_matches!(Utf8CStr::from_bytes(&[8,1,23,4,0xff, 0]).err().unwrap(), Utf8CStrError::Utf8Error(_));
+
+
+        println!("{:?}", x);
+        println!("{}", x);
+
+        assert_eq!(x, x);
+        assert!(x != Utf8CStr::from_bytes(b"hell\0").unwrap());
     }
 }

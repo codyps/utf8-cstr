@@ -7,4 +7,5 @@ description = "Type wrappers promising null termination and utf-8 validity. The 
 repository = "https://github.com/jmesmon/utf8-cstr"
 documentation = "http://codyps.com/docs/utf8-cstr/x86_64-unknown-linux-gnu/stable/utf8_cstr/index.html"
 
-[dependencies]
+[dev-dependencies]
+assert_matches = "1"

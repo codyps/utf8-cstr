@@ -44,6 +44,18 @@ impl fmt::Display for Utf8CStr {
 }
 
 impl Utf8CStr {
+    /// Construct a `Utf8CStr` with no checking.
+    ///
+    /// Unsafety:
+    ///
+    ///  - `'a` must be the correct lifetime
+    ///  - `v` must be nul terminated
+    ///  - `v` must be utf-8 encoded (for use in `&str`)
+    ///  - `l` must be the length of `v` including the nul terminator
+    pub unsafe fn from_raw_parts<'a>(v: *const c_char, l: usize) -> &'a Self {
+        transmute((v, l))
+    }
+
     /// Construct a `Utf8CStr` with minimal checking.
     ///
     /// This currently will scan for the terminating '\0' just to establish the length for various
@@ -144,5 +156,9 @@ mod tests {
 
         assert_eq!(x, x);
         assert!(x != Utf8CStr::from_bytes(b"hell\0").unwrap());
+
+        let v = b"hello\0";
+        let b = unsafe { Utf8CStr::from_raw_parts(v.as_ptr() as *const _, v.len()) };
+        assert_eq!(b, x);
     }
 }

@@ -9,6 +9,7 @@ use std::mem::transmute;
 use std::os::raw::c_char;
 use std::ops::Deref;
 use std::fmt;
+use std::slice;
 
 
 #[derive(Debug)]
@@ -25,6 +26,7 @@ pub enum Utf8CStrError {
  * strings that are both valid utf8 and null terminated.
  */
 #[derive(PartialEq, Eq)]
+#[repr(C)]
 pub struct Utf8CStr {
     inner: CStr,
 }
@@ -53,7 +55,7 @@ impl Utf8CStr {
     ///  - `v` must be utf-8 encoded (for use in `&str`)
     ///  - `l` must be the length of `v` including the nul terminator
     pub unsafe fn from_raw_parts<'a>(v: *const c_char, l: usize) -> &'a Self {
-        transmute((v, l))
+        Self::from_bytes_with_nul_unchecked(slice::from_raw_parts(v as *const u8, l))
     }
 
     /// Construct a `Utf8CStr` with minimal checking.
@@ -104,13 +106,13 @@ impl Utf8CStr {
             return Err(Utf8CStrError::NoNulTerm);
         }
 
-        let c : &CStr = unsafe { transmute(b) };
+        let c = unsafe { CStr::from_bytes_with_nul_unchecked(b) };
         Self::from_cstr(c).map_err(|e| Utf8CStrError::Utf8Error(e))
     }
 
     /// Raw convertion from basic data type with no checking.
     pub unsafe fn from_bytes_with_nul_unchecked(b: &[u8]) -> &Self {
-        transmute(b)
+        transmute(CStr::from_bytes_with_nul_unchecked(b))
     }
 
     pub fn as_ptr(&self) -> *const c_char {

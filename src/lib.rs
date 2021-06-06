@@ -48,7 +48,7 @@ impl fmt::Display for Utf8CStr {
 impl Utf8CStr {
     /// Construct a `Utf8CStr` with no checking.
     ///
-    /// Unsafety:
+    /// # Safety
     ///
     ///  - `'a` must be the correct lifetime
     ///  - `v` must be nul terminated
@@ -63,7 +63,7 @@ impl Utf8CStr {
     /// This currently will scan for the terminating '\0' just to establish the length for various
     /// slices.
     ///
-    /// Unsafety:
+    /// # Safety
     ///
     ///  - `'a` must be the correct lifetime
     ///  - `v` must be nul terminated
@@ -72,7 +72,7 @@ impl Utf8CStr {
         Self::from_cstr_unchecked(CStr::from_ptr(v))
     }
 
-    /// Failable convertion from a CStr.
+    /// Failable conversion from a CStr.
     ///
     /// Verifies that the CStr is utf8 encoded.
     ///
@@ -84,7 +84,7 @@ impl Utf8CStr {
 
     /// Convert from a `&CStr` without any checking
     ///
-    /// Unsafety:
+    /// # Safety
     ///
     ///  - `v` must be valid utf8 for use in a `&str`
     pub unsafe fn from_cstr_unchecked(v: &CStr) -> &Utf8CStr {
@@ -96,7 +96,7 @@ impl Utf8CStr {
     /// NOTE: right now this scans `b` a few times over. Ideally, we'd adjust it to only scan `b`
     /// once.
     pub fn from_bytes(b: &[u8]) -> Result<&Self, Utf8CStrError> {
-        // FIXME: use from_bytes_with_nul when stablized
+        // FIXME: use from_bytes_with_nul when stabilized
         for (l, &v) in b[0..b.len() - 1].iter().enumerate() {
             if v == b'\0' {
                 return Err(Utf8CStrError::EmbeddedNulTerm(l));
@@ -110,7 +110,7 @@ impl Utf8CStr {
         Self::from_cstr(c).map_err(|e| Utf8CStrError::Utf8Error(e))
     }
 
-    /// Raw convertion from basic data type with no checking.
+    /// Raw conversion from basic data type with no checking.
     pub unsafe fn from_bytes_with_nul_unchecked(b: &[u8]) -> &Self {
         transmute(CStr::from_bytes_with_nul_unchecked(b))
     }
@@ -157,7 +157,7 @@ mod tests {
         println!("{}", x);
 
         assert_eq!(x, x);
-        assert!(x != Utf8CStr::from_bytes(b"hell\0").unwrap());
+        assert_ne!(x, Utf8CStr::from_bytes(b"hell\0").unwrap());
 
         let v = b"hello\0";
         let b = unsafe { Utf8CStr::from_raw_parts(v.as_ptr() as *const _, v.len()) };

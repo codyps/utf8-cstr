@@ -48,7 +48,7 @@ impl fmt::Display for Utf8CStr {
 impl Utf8CStr {
     /// Construct a `Utf8CStr` with no checking.
     ///
-    /// Unsafety:
+    /// # Safety
     ///
     ///  - `'a` must be the correct lifetime
     ///  - `v` must be nul terminated
@@ -63,7 +63,7 @@ impl Utf8CStr {
     /// This currently will scan for the terminating '\0' just to establish the length for various
     /// slices.
     ///
-    /// Unsafety:
+    /// # Safety
     ///
     ///  - `'a` must be the correct lifetime
     ///  - `v` must be nul terminated
@@ -84,7 +84,7 @@ impl Utf8CStr {
 
     /// Convert from a `&CStr` without any checking
     ///
-    /// Unsafety:
+    /// # Safety
     ///
     ///  - `v` must be valid utf8 for use in a `&str`
     pub unsafe fn from_cstr_unchecked(v: &CStr) -> &Utf8CStr {

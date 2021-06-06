@@ -157,7 +157,7 @@ mod tests {
         println!("{}", x);
 
         assert_eq!(x, x);
-        assert!(x != Utf8CStr::from_bytes(b"hell\0").unwrap());
+        assert_ne!(x, Utf8CStr::from_bytes(b"hell\0").unwrap());
 
         let v = b"hello\0";
         let b = unsafe { Utf8CStr::from_raw_parts(v.as_ptr() as *const _, v.len()) };

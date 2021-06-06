@@ -78,7 +78,7 @@ impl Utf8CStr {
     ///
     /// NOTE: Only handles non-mutable variants. We may want to accept &mut as well in the future.
     pub fn from_cstr(v: &CStr) -> Result<&Self, Utf8Error> {
-        try!(v.to_str());
+        v.to_str()?;
         Ok(unsafe { transmute(v)})
     }
 
